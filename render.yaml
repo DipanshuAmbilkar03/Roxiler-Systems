@@ -1,0 +1,28 @@
+# Render Blueprint — API service
+# Create Postgres separately (Render/Neon/Supabase) and set DATABASE_URL in the dashboard.
+services:
+  - type: web
+    name: store-rating-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm ci && npm run build -w @store-rating/api && npm exec -w @store-rating/api -- prisma generate
+    startCommand: cd apps/api && npx prisma migrate deploy && npm run start:prod
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: PORT
+        value: "3000"
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d

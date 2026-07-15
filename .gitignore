@@ -1,0 +1,28 @@
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.tsbuildinfo
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+.turbo/
+.cache/
+
+# Private / internal material - do not push to main
+docs/
+Requirement/
+
+# Local env files (keep *.example tracked)
+apps/api/.env
+apps/web/.env
+apps/web/.env.production.local
