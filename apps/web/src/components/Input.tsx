@@ -1,13 +1,14 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+﻿import { forwardRef, type InputHTMLAttributes } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   error?: string;
+  hint?: string;
 };
 
 export const Input = forwardRef<HTMLInputElement, Props>(function Input(
-  { label, error, className = '', id, ...rest },
+  { label, error, hint, className = '', id, ...rest },
   ref,
 ) {
   const inputId = id ?? rest.name;
@@ -17,23 +18,25 @@ export const Input = forwardRef<HTMLInputElement, Props>(function Input(
       <input
         ref={ref}
         id={inputId}
-        className={`w-full rounded-token border bg-white px-3 py-2 text-sm outline-none transition duration-fast focus:ring-2 focus:ring-brand-200 ${
-          error ? 'border-rose-400' : 'border-slate-200 focus:border-brand-400'
+        className={`field-base ${
+          error ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-slate-200'
         } ${className}`}
         {...rest}
       />
       <AnimatePresence>
-        {error && (
+        {error ? (
           <motion.p
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="text-xs text-rose-600"
+            className="text-xs font-medium text-rose-600"
           >
             {error}
           </motion.p>
-        )}
+        ) : hint ? (
+          <p className="text-xs text-slate-400">{hint}</p>
+        ) : null}
       </AnimatePresence>
     </label>
   );

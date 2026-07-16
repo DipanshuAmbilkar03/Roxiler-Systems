@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 import { memo, useState } from 'react';
 
 type Props = {
@@ -33,10 +33,10 @@ export const StarRating = memo(function StarRating({
             key={star}
             type="button"
             disabled={readOnly || !onChange}
-            whileHover={readOnly ? undefined : { scale: 1.15 }}
-            whileTap={readOnly ? undefined : { scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className={`leading-none ${
+            whileHover={readOnly ? undefined : { scale: 1.18, rotate: -6 }}
+            whileTap={readOnly ? undefined : { scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+            className={`leading-none drop-shadow-sm ${
               active ? 'text-amber-400' : 'text-slate-300'
             } ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
             onMouseEnter={() => !readOnly && setHover(star)}

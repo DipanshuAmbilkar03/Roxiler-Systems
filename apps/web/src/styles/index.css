@@ -1,32 +1,9 @@
+﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+@import "./tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --color-brand: #1b5ff5;
-  --color-surface: #f8fafc;
-  --color-ink: #0f172a;
-  --radius: 0.75rem;
-  --motion-fast: 150ms;
-  --motion-base: 200ms;
-  --motion-slow: 250ms;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --motion-fast: 0ms;
-    --motion-base: 0ms;
-    --motion-slow: 0ms;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 
 html,
 body,
@@ -35,5 +12,52 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-surface text-slate-900 antialiased;
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(99, 102, 241, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(14, 165, 233, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(168, 85, 247, 0.08), transparent 55%);
+  background-attachment: fixed;
+}
+
+::selection {
+  @apply bg-brand-200 text-brand-900;
+}
+
+@layer components {
+  .glass-panel {
+    @apply border border-white/70 bg-white/80 shadow-soft backdrop-blur-xl;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-slate-500;
+  }
+
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2;
+  }
+
+  .field-base {
+    @apply w-full rounded-xl border bg-white/90 px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition duration-fast placeholder:text-slate-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-600 via-indigo-500 to-sky-500 bg-clip-text text-transparent;
+  }
+
+  .bg-grid-fade {
+    background-image:
+      linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 75%);
+  }
 }

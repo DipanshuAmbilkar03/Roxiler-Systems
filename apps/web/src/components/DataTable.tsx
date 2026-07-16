@@ -1,4 +1,7 @@
-import { memo, type ReactNode } from 'react';
+﻿import { memo, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { EmptyState } from './EmptyState';
+import { Skeleton } from './Skeleton';
 
 export type Column<T> = {
   key: string;
@@ -22,10 +25,10 @@ function SkeletonRows({ cols }: { cols: number }) {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <tr key={i} className="animate-pulse">
+        <tr key={i}>
           {Array.from({ length: cols }).map((__, j) => (
-            <td key={j} className="px-3 py-3">
-              <div className="h-4 rounded bg-slate-200" />
+            <td key={j} className="px-4 py-3.5">
+              <Skeleton className="h-4 w-full" />
             </td>
           ))}
         </tr>
@@ -45,22 +48,28 @@ function DataTableInner<T>({
   emptyMessage = 'No results',
 }: Props<T>) {
   return (
-    <div className="overflow-hidden rounded-token border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 shadow-card backdrop-blur-sm">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-slate-100 bg-slate-50/90 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               {columns.map((col) => (
-                <th key={col.key} className="px-3 py-3 font-semibold">
+                <th key={col.key} className="px-4 py-3.5 font-semibold">
                   {col.sortable && onSort ? (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 hover:text-brand-700"
+                      className="inline-flex items-center gap-1.5 rounded-md transition hover:text-brand-700"
                       onClick={() => onSort(col.key)}
                     >
                       {col.header}
-                      {sortBy === col.key && (
-                        <span aria-hidden>{order === 'asc' ? '↑' : '↓'}</span>
+                      {sortBy === col.key ? (
+                        order === 'asc' ? (
+                          <ArrowUp className="h-3.5 w-3.5 text-brand-600" />
+                        ) : (
+                          <ArrowDown className="h-3.5 w-3.5 text-brand-600" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />
                       )}
                     </button>
                   ) : (
@@ -75,18 +84,18 @@ function DataTableInner<T>({
               <SkeletonRows cols={columns.length} />
             ) : rows.length === 0 ? (
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-3 py-10 text-center text-slate-500"
-                >
-                  {emptyMessage}
+                <td colSpan={columns.length} className="p-4">
+                  <EmptyState title={emptyMessage} description="Try adjusting filters or search." />
                 </td>
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={rowKey(row)} className="hover:bg-slate-50/80">
+                <tr
+                  key={rowKey(row)}
+                  className="transition-colors duration-fast hover:bg-brand-50/40"
+                >
                   {columns.map((col) => (
-                    <td key={col.key} className="px-3 py-3 text-slate-700">
+                    <td key={col.key} className="px-4 py-3.5 text-slate-700">
                       {col.render(row)}
                     </td>
                   ))}

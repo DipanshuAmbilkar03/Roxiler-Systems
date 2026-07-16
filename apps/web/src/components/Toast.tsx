@@ -1,4 +1,5 @@
-import { AnimatePresence, motion } from 'framer-motion';
+﻿import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import { create } from 'zustand';
 
 type ToastItem = { id: number; message: string; type: 'success' | 'error' | 'info' };
@@ -23,10 +24,22 @@ export const useToastStore = create<ToastState>((set) => ({
   dismiss: (id) => set((s) => ({ items: s.items.filter((t) => t.id !== id) })),
 }));
 
-const colors = {
-  success: 'bg-emerald-600',
-  error: 'bg-rose-600',
-  info: 'bg-slate-800',
+const styles = {
+  success: {
+    bar: 'from-emerald-500 to-teal-400',
+    icon: CheckCircle2,
+    iconClass: 'text-emerald-600',
+  },
+  error: {
+    bar: 'from-rose-500 to-pink-400',
+    icon: XCircle,
+    iconClass: 'text-rose-600',
+  },
+  info: {
+    bar: 'from-brand-500 to-sky-400',
+    icon: Info,
+    iconClass: 'text-brand-600',
+  },
 };
 
 export function ToastViewport() {
@@ -34,30 +47,37 @@ export function ToastViewport() {
   const dismiss = useToastStore((s) => s.dismiss);
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
+    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2">
       <AnimatePresence>
-        {items.map((t) => (
-          <motion.div
-            key={t.id}
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.2 }}
-            className={`pointer-events-auto rounded-token px-4 py-3 text-sm text-white shadow-lg ${colors[t.type]}`}
-            role="status"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span>{t.message}</span>
-              <button
-                type="button"
-                className="opacity-80 hover:opacity-100"
-                onClick={() => dismiss(t.id)}
-              >
-                ×
-              </button>
-            </div>
-          </motion.div>
-        ))}
+        {items.map((t) => {
+          const meta = styles[t.type];
+          const Icon = meta.icon;
+          return (
+            <motion.div
+              key={t.id}
+              initial={{ opacity: 0, y: 14, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.22 }}
+              className="pointer-events-auto overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glow"
+              role="status"
+            >
+              <div className={`h-1 bg-gradient-to-r ${meta.bar}`} />
+              <div className="flex items-start gap-3 px-4 py-3">
+                <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${meta.iconClass}`} />
+                <span className="flex-1 text-sm font-medium text-slate-800">{t.message}</span>
+                <button
+                  type="button"
+                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                  onClick={() => dismiss(t.id)}
+                  aria-label="Dismiss"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
     </div>
   );
