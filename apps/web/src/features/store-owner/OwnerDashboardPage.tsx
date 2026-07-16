@@ -1,9 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { Star, MessageSquareHeart } from 'lucide-react';
 import { AnimatedCounter } from '../../components/AnimatedCounter';
-import { Button } from '../../components/Button';
+import { Badge } from '../../components/Badge';
 import { DataTable, type Column } from '../../components/DataTable';
+import { PageHeader } from '../../components/PageHeader';
+import { Pagination } from '../../components/Pagination';
+import { Skeleton } from '../../components/Skeleton';
 import { StarRating } from '../../components/StarRating';
+import { BlurFade, MagicCard, NumberTicker, ShineBorder } from '../../components/magicui';
 import api, { apiData } from '../../lib/api-client';
 import type { OwnerDashboard } from '../../lib/types';
 
@@ -30,7 +35,7 @@ export default function OwnerDashboardPage() {
         key: 'userName',
         header: 'Name',
         sortable: true,
-        render: (r) => r.user.name,
+        render: (r) => <span className="font-medium text-slate-900">{r.user.name}</span>,
       },
       {
         key: 'userEmail',
@@ -42,7 +47,12 @@ export default function OwnerDashboardPage() {
         key: 'value',
         header: 'Rating',
         sortable: true,
-        render: (r) => <StarRating value={r.value} readOnly size="sm" />,
+        render: (r) => (
+          <div className="flex items-center gap-2">
+            <StarRating value={r.value} readOnly size="sm" />
+            <Badge variant="warning">{r.value}</Badge>
+          </div>
+        ),
       },
       {
         key: 'createdAt',
@@ -69,65 +79,94 @@ export default function OwnerDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Store owner dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {data?.stores.map((s) => s.name).join(' · ') || 'Your stores'}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Owner"
+        title="Store performance"
+        description={data?.stores.map((s) => s.name).join(' · ') || 'Insights for your stores'}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         {isLoading ? (
           <>
-            <div className="h-28 animate-pulse rounded-token bg-slate-200" />
-            <div className="h-28 animate-pulse rounded-token bg-slate-200" />
+            <Skeleton className="h-28 rounded-2xl" />
+            <Skeleton className="h-28 rounded-2xl" />
           </>
         ) : (
           <>
-            <div className="rounded-token border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Average rating
-              </p>
-              <div className="mt-2 flex items-center gap-3">
-                <p className="text-3xl font-bold text-slate-900">
-                  {data?.averageRating ?? '—'}
-                </p>
-                <StarRating value={data?.averageRating ?? 0} readOnly size="lg" />
-              </div>
-            </div>
-            <AnimatedCounter value={data?.ratingsCount ?? 0} label="Total ratings" />
+            <BlurFade delay={0.05}>
+              <MagicCard className="rounded-2xl" gradientFrom="#f59e0b" gradientTo="#fbbf24">
+                <div className="relative overflow-hidden p-5">
+                  <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-gradient-to-br from-amber-400/20 to-transparent" />
+                  <div className="relative flex items-start justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Average rating
+                      </p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <p className="font-display text-3xl font-bold text-slate-900">
+                          {data?.averageRating != null ? (
+                            <NumberTicker
+                              value={Number(data.averageRating)}
+                              decimalPlaces={1}
+                              className="font-display text-3xl font-bold"
+                            />
+                          ) : (
+                            '—'
+                          )}
+                        </p>
+                        <StarRating value={data?.averageRating ?? 0} readOnly size="lg" />
+                      </div>
+                    </div>
+                    <span className="rounded-xl bg-amber-50 p-2.5 text-amber-600">
+                      <Star className="h-5 w-5" />
+                    </span>
+                  </div>
+                </div>
+              </MagicCard>
+            </BlurFade>
+            <BlurFade delay={0.1}>
+              <AnimatedCounter
+                value={data?.ratingsCount ?? 0}
+                label="Total ratings"
+                icon={MessageSquareHeart}
+                accent="emerald"
+              />
+            </BlurFade>
           </>
         )}
       </div>
-      <div>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Raters</h2>
-        <DataTable
-          columns={columns}
-          rows={data?.raters.items ?? []}
-          rowKey={(r) => r.id}
-          sortBy={sortBy}
-          order={order}
-          onSort={onSort}
-          loading={isLoading}
-          emptyMessage="No ratings yet"
-        />
-        <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
-          <span>
-            Page {data?.raters.meta.page ?? page} / {data?.raters.meta.totalPages ?? 1}
-          </span>
-          <div className="flex gap-2">
-            <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Prev
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={(data?.raters.meta.page ?? 1) >= (data?.raters.meta.totalPages ?? 1)}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
+      <BlurFade delay={0.12}>
+        <div className="relative overflow-hidden rounded-2xl">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold text-slate-900">Recent raters</h2>
+          </div>
+          <div className="relative overflow-hidden rounded-2xl">
+            <ShineBorder
+              borderWidth={1}
+              duration={16}
+              shineColor={['#4f46e5', '#0ea5e9']}
+              className="rounded-2xl"
+            />
+            <DataTable
+              columns={columns}
+              rows={data?.raters.items ?? []}
+              rowKey={(r) => r.id}
+              sortBy={sortBy}
+              order={order}
+              onSort={onSort}
+              loading={isLoading}
+              emptyMessage="No ratings yet"
+            />
+          </div>
+          <div className="mt-3">
+            <Pagination
+              page={data?.raters.meta.page ?? page}
+              totalPages={data?.raters.meta.totalPages ?? 1}
+              onPrev={() => setPage((p) => p - 1)}
+              onNext={() => setPage((p) => p + 1)}
+            />
           </div>
         </div>
-      </div>
+      </BlurFade>
     </div>
   );
 }

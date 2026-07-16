@@ -1,11 +1,17 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+﻿import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Plus, Store } from 'lucide-react';
+import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { Card } from '../../components/Card';
 import { DataTable, type Column } from '../../components/DataTable';
 import { Input } from '../../components/Input';
 import { Modal } from '../../components/Modal';
+import { PageHeader } from '../../components/PageHeader';
+import { Pagination } from '../../components/Pagination';
+import { Select } from '../../components/Select';
 import { StarRating } from '../../components/StarRating';
 import { toast } from '../../components/Toast';
 import api, { apiData, getErrorMessage } from '../../lib/api-client';
@@ -65,16 +71,33 @@ export default function AdminStoresPage() {
 
   const columns = useMemo<Column<StoreRow>[]>(
     () => [
-      { key: 'name', header: 'Name', sortable: true, render: (r) => r.name },
+      {
+        key: 'name',
+        header: 'Name',
+        sortable: true,
+        render: (r) => (
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+              <Store className="h-4 w-4" />
+            </span>
+            <span className="font-medium text-slate-900">{r.name}</span>
+          </div>
+        ),
+      },
       { key: 'email', header: 'Email', sortable: true, render: (r) => r.email },
-      { key: 'address', header: 'Address', sortable: true, render: (r) => r.address },
+      {
+        key: 'address',
+        header: 'Address',
+        sortable: true,
+        render: (r) => <span className="line-clamp-1 max-w-[14rem]">{r.address}</span>,
+      },
       {
         key: 'rating',
         header: 'Avg rating',
         render: (r) => (
           <div className="flex items-center gap-2">
             <StarRating value={r.averageRating ?? 0} readOnly size="sm" />
-            <span className="text-xs text-slate-500">{r.averageRating ?? '—'}</span>
+            <Badge variant="warning">{r.averageRating ?? '—'}</Badge>
           </div>
         ),
       },
@@ -96,19 +119,29 @@ export default function AdminStoresPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-slate-900">Stores</h1>
-        <Button onClick={() => setOpen(true)}>Add store</Button>
-      </div>
-      <Input
-        label="Search name / address / email"
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Catalog"
+        title="Stores"
+        description="Manage store listings and assign owners."
+        actions={
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add store
+          </Button>
+        }
       />
+      <Card className="!p-4">
+        <Input
+          label="Search name / address / email"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Search stores…"
+        />
+      </Card>
       <DataTable
         columns={columns}
         rows={query.data?.items ?? []}
@@ -118,45 +151,33 @@ export default function AdminStoresPage() {
         onSort={onSort}
         loading={query.isLoading}
       />
-      <div className="flex items-center justify-between text-sm text-slate-600">
-        <span>
-          Page {query.data?.meta.page ?? page} / {query.data?.meta.totalPages ?? 1}
-        </span>
-        <div className="flex gap-2">
-          <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Prev
-          </Button>
-          <Button
-            variant="secondary"
-            disabled={(query.data?.meta.page ?? 1) >= (query.data?.meta.totalPages ?? 1)}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <Pagination
+        page={query.data?.meta.page ?? page}
+        totalPages={query.data?.meta.totalPages ?? 1}
+        onPrev={() => setPage((p) => p - 1)}
+        onNext={() => setPage((p) => p + 1)}
+      />
 
-      <Modal open={open} title="Add store" onClose={() => setOpen(false)}>
+      <Modal
+        open={open}
+        title="Add store"
+        description="Create a store and optionally link a store owner."
+        onClose={() => setOpen(false)}
+      >
         <form className="space-y-3" onSubmit={handleSubmit((v) => createMut.mutate(v))}>
           <Input label="Name" error={errors.name?.message} {...register('name')} />
           <Input label="Email" error={errors.email?.message} {...register('email')} />
           <Input label="Address" error={errors.address?.message} {...register('address')} />
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-slate-700">Owner</span>
-            <select
-              className="w-full rounded-token border border-slate-200 px-3 py-2 text-sm"
-              {...register('ownerId')}
-            >
-              <option value="">Select owner</option>
-              {owners.data?.items.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name} ({o.email})
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select label="Owner" error={errors.ownerId?.message} {...register('ownerId')}>
+            <option value="">Select owner</option>
+            {owners.data?.items.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name} ({o.email})
+              </option>
+            ))}
+          </Select>
           <Button type="submit" loading={createMut.isPending} className="w-full">
-            Create
+            Create store
           </Button>
         </form>
       </Modal>

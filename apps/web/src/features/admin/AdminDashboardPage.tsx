@@ -1,5 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
+import { Store, Star, Users } from 'lucide-react';
 import { AnimatedCounter } from '../../components/AnimatedCounter';
+import { Badge } from '../../components/Badge';
+import { PageHeader } from '../../components/PageHeader';
+import { Skeleton } from '../../components/Skeleton';
+import { BlurFade, BorderBeam } from '../../components/magicui';
 import api, { apiData } from '../../lib/api-client';
 import type { DashboardCounts } from '../../lib/types';
 
@@ -11,20 +16,49 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900">Admin dashboard</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Platform totals {data?.cached ? '(cached)' : ''}
-      </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <PageHeader
+        eyebrow="Admin"
+        title="Platform overview"
+        description="Live totals for users, stores, and ratings across the platform."
+        actions={data?.cached ? <Badge variant="info">Cached snapshot</Badge> : undefined}
+      />
+      <div className="grid gap-4 sm:grid-cols-3">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-token bg-slate-200" />
+            <Skeleton key={i} className="h-28 rounded-2xl" />
           ))
         ) : (
           <>
-            <AnimatedCounter value={data?.totalUsers ?? 0} label="Users" />
-            <AnimatedCounter value={data?.totalStores ?? 0} label="Stores" />
-            <AnimatedCounter value={data?.totalRatings ?? 0} label="Ratings" />
+            <BlurFade delay={0.05} className="relative overflow-hidden rounded-2xl">
+              <BorderBeam size={70} duration={7} colorFrom="#4f46e5" colorTo="#818cf8" />
+              <AnimatedCounter
+                value={data?.totalUsers ?? 0}
+                label="Users"
+                icon={Users}
+                accent="brand"
+                delay={0}
+              />
+            </BlurFade>
+            <BlurFade delay={0.1} className="relative overflow-hidden rounded-2xl">
+              <BorderBeam size={70} duration={8} delay={1} colorFrom="#0ea5e9" colorTo="#38bdf8" />
+              <AnimatedCounter
+                value={data?.totalStores ?? 0}
+                label="Stores"
+                icon={Store}
+                accent="sky"
+                delay={0.05}
+              />
+            </BlurFade>
+            <BlurFade delay={0.15} className="relative overflow-hidden rounded-2xl">
+              <BorderBeam size={70} duration={9} delay={2} colorFrom="#f59e0b" colorTo="#fbbf24" />
+              <AnimatedCounter
+                value={data?.totalRatings ?? 0}
+                label="Ratings"
+                icon={Star}
+                accent="amber"
+                delay={0.1}
+              />
+            </BlurFade>
           </>
         )}
       </div>
