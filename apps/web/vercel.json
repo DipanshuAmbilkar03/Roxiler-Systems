@@ -1,4 +1,9 @@
 {
+  "version": 2,
+  "installCommand": "npm install --prefix ../..",
+  "buildCommand": "npm run build --prefix ../.. -w @store-rating/web",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",

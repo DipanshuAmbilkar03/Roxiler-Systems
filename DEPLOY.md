@@ -36,6 +36,8 @@ Local dev: leave `VITE_API_URL` empty so the Vite proxy serves `/api`.
 
 ## Option A - Vercel (web) + Render (API) + Neon (DB)
 
+See also **[VERCEL.md](./VERCEL.md)** for exact Vercel dashboard clicks.
+
 ### 1. Database
 
 1. Create a Neon/Supabase Postgres project.
@@ -62,10 +64,10 @@ npx prisma db seed   # optional local demo data
 **Recommended: monorepo root settings** (uses root `vercel.json`)
 
 1. Import the GitHub repo on Vercel.
-2. In Project Settings → General:
+2. In Project Settings â†’ General:
    - **Root Directory:** leave empty / `.` (repo root)
    - **Framework Preset:** Other
-3. In Project Settings → Build & Development (or use `vercel.json`):
+3. In Project Settings â†’ Build & Development (or use `vercel.json`):
    - **Install Command:** `npm ci`
    - **Build Command:** `npm run build -w @store-rating/web`
    - **Output Directory:** `apps/web/dist`
