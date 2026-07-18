@@ -28,7 +28,11 @@ describe('AdminService', () => {
       findMany: jest.Mock;
       create: jest.Mock;
     };
-    rating: { count: jest.Mock };
+    rating: {
+      count: jest.Mock;
+      aggregate: jest.Mock;
+      findMany: jest.Mock;
+    };
   };
   let cache: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
 
@@ -45,7 +49,11 @@ describe('AdminService', () => {
         findMany: jest.fn(),
         create: jest.fn(),
       },
-      rating: { count: jest.fn() },
+      rating: {
+        count: jest.fn(),
+        aggregate: jest.fn(),
+        findMany: jest.fn(),
+      },
     };
     cache = {
       get: jest.fn().mockResolvedValue(null),
@@ -68,15 +76,29 @@ describe('AdminService', () => {
 
   describe('getDashboard', () => {
     it('returns counts and caches them', async () => {
-      prisma.user.count.mockResolvedValue(8);
+      prisma.user.count
+        .mockResolvedValueOnce(8) // totalUsers
+        .mockResolvedValueOnce(1) // admins
+        .mockResolvedValueOnce(5) // normal users
+        .mockResolvedValueOnce(2); // owners
       prisma.store.count.mockResolvedValue(4);
-      prisma.rating.count.mockResolvedValue(11);
+      prisma.rating.count
+        .mockResolvedValueOnce(11) // totalRatings
+        .mockResolvedValueOnce(6); // with comments
+      prisma.rating.aggregate.mockResolvedValue({ _avg: { value: 4.25 } });
+      prisma.rating.findMany.mockResolvedValue([]);
 
       const result = await service.getDashboard();
       expect(result).toEqual({
         totalUsers: 8,
         totalStores: 4,
         totalRatings: 11,
+        totalAdmins: 1,
+        totalNormalUsers: 5,
+        totalStoreOwners: 2,
+        averageRating: 4.25,
+        ratingsWithComments: 6,
+        recentRatings: [],
         cached: false,
       });
       expect(cache.set).toHaveBeenCalled();

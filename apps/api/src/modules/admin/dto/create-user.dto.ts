@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+﻿import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import {
   IsEmail,
@@ -24,7 +24,7 @@ export class CreateUserDto {
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ example: 'User@1234', minLength: 8, maxLength: 16 })
+  @ApiProperty({ example: 'Password@1', minLength: 8, maxLength: 16 })
   @IsString()
   @IsStrongPassword()
   password!: string;
@@ -44,3 +44,4 @@ export class CreateUserDto {
   @IsEnum(Role)
   role!: Role;
 }
+

@@ -15,6 +15,8 @@ const STORE_AVG_PREFIX = 'store:avg:';
 const STORE_AVG_TTL_MS = 15_000;
 const DASHBOARD_CACHE_KEY = 'admin:dashboard:counts';
 
+type StoreAvgCache = { average: number | null; count: number };
+
 @Injectable()
 export class StoresService {
   constructor(
@@ -55,7 +57,7 @@ export class StoresService {
       }),
       this.prisma.rating.findMany({
         where: { userId },
-        select: { storeId: true, value: true, id: true },
+        select: { storeId: true, value: true, id: true, comment: true },
       }),
     ]);
 
@@ -63,13 +65,15 @@ export class StoresService {
 
     const items = await Promise.all(
       stores.map(async (store) => {
-        const averageRating = await this.getAverageRating(store.id);
+        const stats = await this.getAverageStats(store.id);
         const mine = myByStore.get(store.id);
         return {
           ...store,
-          averageRating,
+          averageRating: stats.average,
+          ratingsCount: stats.count,
           userRating: mine?.value ?? null,
           userRatingId: mine?.id ?? null,
+          userComment: mine?.comment ?? null,
         };
       }),
     );
@@ -87,6 +91,73 @@ export class StoresService {
     };
   }
 
+  async getStoreDetail(userId: string, storeId: string) {
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        address: true,
+        createdAt: true,
+        owner: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+    if (!store) {
+      throw new NotFoundException('Store not found');
+    }
+
+    const [stats, breakdownRows, ratings, mine] = await Promise.all([
+      this.getAverageStats(storeId),
+      this.prisma.rating.groupBy({
+        by: ['value'],
+        where: { storeId },
+        _count: { value: true },
+      }),
+      this.prisma.rating.findMany({
+        where: { storeId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          value: true,
+          comment: true,
+          createdAt: true,
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      }),
+      this.prisma.rating.findUnique({
+        where: { userId_storeId: { userId, storeId } },
+        select: { id: true, value: true, comment: true },
+      }),
+    ]);
+
+    const ratingBreakdown = [5, 4, 3, 2, 1].map((star) => {
+      const row = breakdownRows.find((r) => r.value === star);
+      return { stars: star, count: row?._count.value ?? 0 };
+    });
+
+    return {
+      ...store,
+      averageRating: stats.average,
+      ratingsCount: stats.count,
+      userRating: mine?.value ?? null,
+      userRatingId: mine?.id ?? null,
+      userComment: mine?.comment ?? null,
+      ratingBreakdown,
+      ratings: ratings.map((r) => ({
+        id: r.id,
+        value: r.value,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        user: r.user,
+      })),
+    };
+  }
+
   async createRating(userId: string, storeId: string, dto: UpsertRatingDto) {
     await this.ensureStore(storeId);
 
@@ -99,8 +170,20 @@ export class StoresService {
       );
     }
 
+    const comment =
+      dto.comment === undefined
+        ? undefined
+        : dto.comment.trim() === ''
+          ? null
+          : dto.comment.trim();
+
     const rating = await this.prisma.rating.create({
-      data: { userId, storeId, value: dto.value },
+      data: {
+        userId,
+        storeId,
+        value: dto.value,
+        ...(comment !== undefined ? { comment } : {}),
+      },
     });
 
     await this.invalidateStoreCaches(storeId);
@@ -119,9 +202,14 @@ export class StoresService {
       );
     }
 
+    const data: { value: number; comment?: string | null } = { value: dto.value };
+    if (dto.comment !== undefined) {
+      data.comment = dto.comment.trim() === '' ? null : dto.comment.trim();
+    }
+
     const rating = await this.prisma.rating.update({
       where: { id: existing.id },
-      data: { value: dto.value },
+      data,
     });
 
     await this.invalidateStoreCaches(storeId);
@@ -138,14 +226,20 @@ export class StoresService {
     return store;
   }
 
-  private async getAverageRating(storeId: string): Promise<number | null> {
+  private async getAverageStats(storeId: string): Promise<StoreAvgCache> {
     const key = `${STORE_AVG_PREFIX}${storeId}`;
-    const cached = await this.cache.get<number | null>(key);
-    if (cached !== undefined && cached !== null) {
-      return cached;
-    }
-    if (cached === null) {
-      return null;
+    const cached = await this.cache.get<StoreAvgCache | number | null>(key);
+    // Support old cache shape (number | null) and new shape
+    if (cached !== undefined) {
+      if (cached === null) {
+        return { average: null, count: 0 };
+      }
+      if (typeof cached === 'number') {
+        return { average: cached, count: 0 };
+      }
+      if (typeof cached === 'object' && 'average' in cached) {
+        return cached;
+      }
     }
 
     const agg = await this.prisma.rating.aggregate({
@@ -159,8 +253,13 @@ export class StoresService {
         ? null
         : Math.round(agg._avg.value * 100) / 100;
 
-    await this.cache.set(key, average, STORE_AVG_TTL_MS);
-    return average;
+    const stats: StoreAvgCache = {
+      average,
+      count: agg._count.value,
+    };
+
+    await this.cache.set(key, stats, STORE_AVG_TTL_MS);
+    return stats;
   }
 
   private async invalidateStoreCaches(storeId: string) {

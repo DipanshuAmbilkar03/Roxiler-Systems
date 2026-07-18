@@ -48,14 +48,43 @@ export interface StoreRow {
   ratingsCount?: number;
   userRating?: number | null;
   userRatingId?: string | null;
+  userComment?: string | null;
   owner?: { id: string; name: string; email: string };
   createdAt?: string;
+}
+
+export interface StoreRatingItem {
+  id: string;
+  value: number;
+  comment?: string | null;
+  createdAt: string;
+  user: { id: string; name: string; email: string };
+}
+
+export interface StoreDetail extends StoreRow {
+  owner?: { id: string; name: string; email: string };
+  ratingBreakdown: Array<{ stars: number; count: number }>;
+  ratings: StoreRatingItem[];
+  userComment?: string | null;
 }
 
 export interface DashboardCounts {
   totalUsers: number;
   totalStores: number;
   totalRatings: number;
+  totalAdmins?: number;
+  totalNormalUsers?: number;
+  totalStoreOwners?: number;
+  averageRating?: number | null;
+  ratingsWithComments?: number;
+  recentRatings?: Array<{
+    id: string;
+    value: number;
+    comment: string | null;
+    createdAt: string;
+    user: { id: string; name: string };
+    store: { id: string; name: string };
+  }>;
   cached?: boolean;
 }
 
@@ -66,6 +95,7 @@ export interface OwnerDashboard {
   raters: Paginated<{
     id: string;
     value: number;
+    comment?: string | null;
     createdAt: string;
     user: { id: string; name: string; email: string };
     store: { id: string; name: string };

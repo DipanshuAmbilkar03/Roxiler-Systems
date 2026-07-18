@@ -1,177 +1,237 @@
-﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
-import { Badge } from '../../components/Badge';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Input } from '../../components/Input';
-import { PageHeader } from '../../components/PageHeader';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { ArrowDownAZ, MessageSquareHeart, Search } from 'lucide-react';
+import { EmptyState } from '../../components/EmptyState';
 import { Pagination } from '../../components/Pagination';
-import { StarRating } from '../../components/StarRating';
+import { SegmentedControl } from '../../components/SegmentedControl';
+import { Skeleton } from '../../components/Skeleton';
+import { StoreCard } from '../../components/StoreCard';
+import { StoreDetailModal } from '../../components/StoreDetailModal';
 import { toast } from '../../components/Toast';
-import { BlurFade, MagicCard } from '../../components/magicui';
 import api, { apiData, getErrorMessage } from '../../lib/api-client';
-import type { Paginated, StoreRow } from '../../lib/types';
+import { useDebouncedValue } from '../../lib/use-debounced-value';
+import type { Paginated, StoreDetail, StoreRow } from '../../lib/types';
+import { cn } from '../../lib/utils';
 
 export default function StoresPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState<'name' | 'address' | 'createdAt'>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
+  const search = useDebouncedValue(searchInput, 300);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [ratedFilter, setRatedFilter] = useState<'all' | 'rated' | 'unrated'>('all');
 
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      setSearch(searchInput);
-      setPage(1);
-    }, 300);
-    return () => window.clearTimeout(t);
-  }, [searchInput]);
+  const sortMode = `${sortBy}:${order}`;
 
   const query = useQuery({
     queryKey: ['stores', page, sortBy, order, search],
     queryFn: () =>
       apiData<Paginated<StoreRow>>(
         api.get('/stores', {
-          params: { page, limit: 10, sortBy, order, search: search || undefined },
+          params: { page, limit: 9, sortBy, order, search: search || undefined },
         }),
       ),
   });
+
+  const items = useMemo(() => {
+    const list = query.data?.items ?? [];
+    if (ratedFilter === 'rated') return list.filter((s) => s.userRating != null);
+    if (ratedFilter === 'unrated') return list.filter((s) => s.userRating == null);
+    return list;
+  }, [query.data?.items, ratedFilter]);
 
   const rateMut = useMutation({
     mutationFn: ({
       storeId,
       value,
       hasRating,
+      comment,
     }: {
       storeId: string;
       value: number;
       hasRating: boolean;
-    }) =>
-      hasRating
-        ? apiData(api.patch(`/stores/${storeId}/ratings`, { value }))
-        : apiData(api.post(`/stores/${storeId}/ratings`, { value })),
-    onMutate: async ({ storeId, value }) => {
+      comment?: string;
+    }) => {
+      const body = {
+        value,
+        ...(comment !== undefined ? { comment: comment || undefined } : {}),
+      };
+      return hasRating
+        ? apiData(api.patch(`/stores/${storeId}/ratings`, body))
+        : apiData(api.post(`/stores/${storeId}/ratings`, body));
+    },
+    onMutate: async ({ storeId, value, comment }) => {
       await qc.cancelQueries({ queryKey: ['stores'] });
-      const key = ['stores', page, sortBy, order, search];
-      const prev = qc.getQueryData<Paginated<StoreRow>>(key);
-      if (prev) {
-        qc.setQueryData<Paginated<StoreRow>>(key, {
-          ...prev,
-          items: prev.items.map((s) =>
-            s.id === storeId ? { ...s, userRating: value } : s,
+      const listKey = ['stores', page, sortBy, order, search];
+      const detailKey = ['stores', 'detail', storeId];
+      const prevList = qc.getQueryData<Paginated<StoreRow>>(listKey);
+      const prevDetail = qc.getQueryData<StoreDetail>(detailKey);
+
+      if (prevList) {
+        qc.setQueryData<Paginated<StoreRow>>(listKey, {
+          ...prevList,
+          items: prevList.items.map((s) =>
+            s.id === storeId
+              ? {
+                  ...s,
+                  userRating: value,
+                  userComment: comment ?? s.userComment ?? null,
+                }
+              : s,
           ),
         });
       }
-      return { prev, key };
+      if (prevDetail) {
+        qc.setQueryData<StoreDetail>(detailKey, {
+          ...prevDetail,
+          userRating: value,
+          userComment: comment ?? prevDetail.userComment ?? null,
+        });
+      }
+      return { prevList, prevDetail, listKey, detailKey };
     },
     onError: (err, _v, ctx) => {
-      if (ctx?.prev && ctx.key) qc.setQueryData(ctx.key, ctx.prev);
+      if (ctx?.prevList && ctx.listKey) qc.setQueryData(ctx.listKey, ctx.prevList);
+      if (ctx?.prevDetail && ctx.detailKey) {
+        qc.setQueryData(ctx.detailKey, ctx.prevDetail);
+      }
       toast(getErrorMessage(err), 'error');
     },
-    onSuccess: () => toast('Rating saved', 'success'),
-    onSettled: () => void qc.invalidateQueries({ queryKey: ['stores'] }),
+    onSuccess: () => toast('Thanks! Your rating was saved.', 'success'),
+    onSettled: (_d, _e, vars) => {
+      void qc.invalidateQueries({ queryKey: ['stores'] });
+      if (vars?.storeId) {
+        void qc.invalidateQueries({ queryKey: ['stores', 'detail', vars.storeId] });
+      }
+    },
   });
 
-  const columns = useMemo<Column<StoreRow>[]>(
-    () => [
-      {
-        key: 'name',
-        header: 'Store',
-        sortable: true,
-        render: (r) => (
-          <div>
-            <p className="font-semibold text-slate-900">{r.name}</p>
-            <p className="mt-0.5 text-xs text-slate-500 sm:hidden">{r.address}</p>
-          </div>
-        ),
-      },
-      {
-        key: 'address',
-        header: 'Address',
-        sortable: true,
-        render: (r) => <span className="text-slate-600">{r.address}</span>,
-      },
-      {
-        key: 'average',
-        header: 'Overall',
-        render: (r) => (
-          <div className="flex items-center gap-2">
-            <StarRating value={r.averageRating ?? 0} readOnly size="sm" />
-            <Badge variant="warning">{r.averageRating ?? '—'}</Badge>
-          </div>
-        ),
-      },
-      {
-        key: 'mine',
-        header: 'Your rating',
-        render: (r) => (
-          <StarRating
-            value={r.userRating ?? null}
-            onChange={(value) =>
-              rateMut.mutate({
-                storeId: r.id,
-                value,
-                hasRating: r.userRating != null,
-              })
-            }
-          />
-        ),
-      },
-    ],
-    [rateMut],
-  );
-
-  const onSort = (key: string) => {
-    if (sortBy === key) setOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
-    else {
-      setSortBy(key);
-      setOrder('asc');
-    }
-  };
-
   return (
-    <div className="space-y-5">
-      <PageHeader
-        eyebrow="Explore"
-        title="Browse stores"
-        description="Search by name or address, then leave or update your star rating."
-      />
-      <BlurFade delay={0.05}>
-        <MagicCard className="rounded-2xl" gradientFrom="#6366f1" gradientTo="#0ea5e9">
-          <div className="p-4">
-            <div className="flex items-end gap-3">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-[2.35rem] h-4 w-4 text-slate-400" />
-                <Input
-                  label="Search stores"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="e.g. Green Market"
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </div>
-        </MagicCard>
-      </BlurFade>
-      <BlurFade delay={0.1}>
-        <DataTable
-          columns={columns}
-          rows={query.data?.items ?? []}
-          rowKey={(r) => r.id}
-          sortBy={sortBy}
-          order={order}
-          onSort={onSort}
-          loading={query.isLoading}
-          emptyMessage="No stores match your search"
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center" data-tour="stores-toolbar">
+        <label className="relative min-w-0 flex-1" htmlFor="store-search" data-tour="stores-search">
+          <span className="sr-only">Search by name or address</span>
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-300/80" />
+          <input
+            id="store-search"
+            type="search"
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search by name or address..."
+            className={cn(
+              'w-full rounded-xl border border-white/[0.10] bg-white/[0.05] py-2.5 pl-10 pr-3.5 text-sm text-white shadow-soft outline-none transition',
+              'placeholder:text-white/35 hover:border-indigo-400/30 hover:bg-white/[0.07]',
+              'focus:border-indigo-400/45 focus:bg-white/[0.08] focus:ring-4 focus:ring-indigo-500/15',
+            )}
+          />
+        </label>
+
+        <div data-tour="stores-filter" className="w-full shrink-0 sm:w-auto">
+          <SegmentedControl
+            ariaLabel="Filter by your ratings"
+            className="w-full"
+            value={ratedFilter}
+            onChange={(v) => setRatedFilter(v as 'all' | 'rated' | 'unrated')}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'rated', label: 'Rated' },
+              { value: 'unrated', label: 'To rate' },
+            ]}
+          />
+        </div>
+
+        <SegmentedControl
+          ariaLabel="Sort stores"
+          className="w-full shrink-0 sm:w-auto"
+          value={sortMode}
+          onChange={(v) => {
+            const [nextSort, nextOrder] = v.split(':') as [
+              'name' | 'address' | 'createdAt',
+              'asc' | 'desc',
+            ];
+            setSortBy(nextSort);
+            setOrder(nextOrder);
+            setPage(1);
+          }}
+          options={[
+            { value: 'name:asc', label: 'A-Z' },
+            { value: 'name:desc', label: 'Z-A' },
+            { value: 'address:asc', label: 'Address' },
+            { value: 'createdAt:desc', label: 'Newest' },
+          ]}
         />
-      </BlurFade>
+      </div>
+
+      {query.isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} variant="store" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          title="No stores found"
+          description={
+            search
+              ? 'No stores match your search. Try a different name or address.'
+              : ratedFilter !== 'all'
+                ? 'No stores match this filter on the current page.'
+                : 'There are no stores to show right now. Check back soon or ask an admin to add listings.'
+          }
+          icon={
+            ratedFilter === 'unrated' ? (
+              <MessageSquareHeart className="h-5 w-5" />
+            ) : (
+              <ArrowDownAZ className="h-5 w-5" />
+            )
+          }
+        />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-tour="stores-grid">
+          {items.map((store, index) => (
+            <StoreCard
+              key={store.id}
+              id={store.id}
+              name={store.name}
+              address={store.address}
+              averageRating={store.averageRating}
+              ratingsCount={store.ratingsCount}
+              userRating={store.userRating}
+              index={index}
+              onOpen={() => setSelectedStoreId(store.id)}
+            />
+          ))}
+        </div>
+      )}
+
       <Pagination
         page={query.data?.meta.page ?? page}
         totalPages={query.data?.meta.totalPages ?? 1}
+        totalItems={query.data?.meta.total}
         onPrev={() => setPage((p) => p - 1)}
         onNext={() => setPage((p) => p + 1)}
+        onPage={setPage}
+      />
+
+      <StoreDetailModal
+        storeId={selectedStoreId}
+        open={!!selectedStoreId}
+        onClose={() => setSelectedStoreId(null)}
+        ratingPending={rateMut.isPending}
+        onRate={(value, hasRating, comment) => {
+          if (!selectedStoreId) return;
+          rateMut.mutate({
+            storeId: selectedStoreId,
+            value,
+            hasRating,
+            comment,
+          });
+        }}
       />
     </div>
   );

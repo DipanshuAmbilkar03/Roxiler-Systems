@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client';
+﻿import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -12,35 +12,39 @@ async function main() {
   await prisma.store.deleteMany();
   await prisma.user.deleteMany();
 
-  const password = await hashPassword('Admin@123');
+  const adminPasswordPlain = process.env.SEED_ADMIN_PASSWORD ?? 'Admin@123';
+  const ownerPasswordPlain = process.env.SEED_OWNER_PASSWORD ?? 'Owner@123';
+  const userPasswordPlain = process.env.SEED_USER_PASSWORD ?? 'User@1234';
+
+  const password = await hashPassword(adminPasswordPlain);
 
   const admin = await prisma.user.create({
     data: {
-      name: 'System Administrator User',
+      name: 'Rajesh Kumar Sharma Admin',
       email: 'admin@store-rating.local',
       password,
-      address: '1 Admin Plaza, Platform HQ, City Center, State 10001',
+      address: '12 MG Road, Connaught Place, New Delhi, Delhi 110001',
       role: Role.ADMIN,
     },
   });
 
-  const ownerPassword = await hashPassword('Owner@123');
+  const ownerPassword = await hashPassword(ownerPasswordPlain);
   const owners = await Promise.all(
     [
       {
-        name: 'Green Market Store Owner One',
+        name: 'Amitabh Verma Store Owner',
         email: 'owner1@store-rating.local',
-        address: '10 Market Street, Downtown District, Metro City 20001',
+        address: '45 Linking Road, Bandra West, Mumbai, Maharashtra 400050',
       },
       {
-        name: 'Blue Harbor Store Owner Two',
+        name: 'Priya Nair Store Owner Two',
         email: 'owner2@store-rating.local',
-        address: '22 Harbor Road, Waterfront Area, Port City 20002',
+        address: '18 Church Street, Brigade Road Area, Bengaluru, Karnataka 560001',
       },
       {
-        name: 'Sunny Bakery Store Owner Three',
+        name: 'Suresh Iyer Store Owner Three',
         email: 'owner3@store-rating.local',
-        address: '45 Bakery Lane, Old Town Quarter, Bake City 20003',
+        address: '7 T Nagar Main Road, Chennai, Tamil Nadu 600017',
       },
     ].map((o) =>
       prisma.user.create({
@@ -53,28 +57,28 @@ async function main() {
     ),
   );
 
-  const userPassword = await hashPassword('User@1234');
+  const userPassword = await hashPassword(userPasswordPlain);
   const users = await Promise.all(
     [
       {
-        name: 'Normal User Alice Johnson',
+        name: 'Ananya Sharma Normal User',
         email: 'alice@store-rating.local',
-        address: '100 Residential Ave, Suburb North, City 30001',
+        address: '21 Koregaon Park Lane, Pune, Maharashtra 411001',
       },
       {
-        name: 'Normal User Bob Williams',
+        name: 'Rohan Patel Normal User XX',
         email: 'bob@store-rating.local',
-        address: '200 Residential Ave, Suburb South, City 30002',
+        address: '56 CG Road, Navrangpura, Ahmedabad, Gujarat 380009',
       },
       {
-        name: 'Normal User Carol Davis XX',
+        name: 'Meera Krishnan Normal User',
         email: 'carol@store-rating.local',
-        address: '300 Residential Ave, Suburb East, City 30003',
+        address: '9 Banjara Hills Road, Hyderabad, Telangana 500034',
       },
       {
-        name: 'Normal User David Miller X',
+        name: 'Arjun Singh Normal User XX',
         email: 'david@store-rating.local',
-        address: '400 Residential Ave, Suburb West, City 30004',
+        address: '33 Park Street, Kolkata, West Bengal 700016',
       },
     ].map((u) =>
       prisma.user.create({
@@ -90,49 +94,84 @@ async function main() {
   const stores = await Promise.all([
     prisma.store.create({
       data: {
-        name: 'Green Market Fresh Foods',
+        name: 'Fresh Basket Kirana Mart',
         email: 'green@stores.local',
-        address: '10 Market Street, Downtown District, Metro City 20001',
+        address: '45 Linking Road, Bandra West, Mumbai, Maharashtra 400050',
         ownerId: owners[0].id,
       },
     }),
     prisma.store.create({
       data: {
-        name: 'Blue Harbor Seafood Co',
+        name: 'Coastal Catch Seafood Hub',
         email: 'blue@stores.local',
-        address: '22 Harbor Road, Waterfront Area, Port City 20002',
+        address: '18 Church Street, Brigade Road Area, Bengaluru, Karnataka 560001',
         ownerId: owners[1].id,
       },
     }),
     prisma.store.create({
       data: {
-        name: 'Sunny Bakery And Cafe XX',
+        name: 'Aroma Bakery And Cafe XX',
         email: 'sunny@stores.local',
-        address: '45 Bakery Lane, Old Town Quarter, Bake City 20003',
+        address: '7 T Nagar Main Road, Chennai, Tamil Nadu 600017',
         ownerId: owners[2].id,
       },
     }),
     prisma.store.create({
       data: {
-        name: 'Green Market Express Hub',
+        name: 'Fresh Basket Express Hub',
         email: 'green2@stores.local',
-        address: '11 Market Street Annex, Downtown, Metro City 20001',
+        address: '12 Hill Road Annex, Bandra West, Mumbai, Maharashtra 400050',
         ownerId: owners[0].id,
       },
     }),
   ]);
 
-  const ratingData: { userId: string; storeId: string; value: number }[] = [
-    { userId: users[0].id, storeId: stores[0].id, value: 5 },
-    { userId: users[1].id, storeId: stores[0].id, value: 4 },
+  const ratingData: {
+    userId: string;
+    storeId: string;
+    value: number;
+    comment?: string;
+  }[] = [
+    {
+      userId: users[0].id,
+      storeId: stores[0].id,
+      value: 5,
+      comment: 'Clean aisles and friendly staff. Always my first stop for sabzi.',
+    },
+    {
+      userId: users[1].id,
+      storeId: stores[0].id,
+      value: 4,
+      comment: 'Good prices overall. Produce is consistently fresh and local.',
+    },
     { userId: users[2].id, storeId: stores[0].id, value: 5 },
-    { userId: users[0].id, storeId: stores[1].id, value: 3 },
-    { userId: users[1].id, storeId: stores[1].id, value: 4 },
+    {
+      userId: users[0].id,
+      storeId: stores[1].id,
+      value: 3,
+      comment: 'Fresh catch, but weekends get crowded near Brigade Road.',
+    },
+    {
+      userId: users[1].id,
+      storeId: stores[1].id,
+      value: 4,
+      comment: 'Fresh seafood and helpful counter team. Good pomfret.',
+    },
     { userId: users[3].id, storeId: stores[1].id, value: 5 },
-    { userId: users[0].id, storeId: stores[2].id, value: 4 },
-    { userId: users[2].id, storeId: stores[2].id, value: 5 },
+    {
+      userId: users[0].id,
+      storeId: stores[2].id,
+      value: 4,
+      comment: 'Great filter coffee and soft buns. Worth the visit.',
+    },
+    { userId: users[2].id, storeId: stores[2].id, value: 5, comment: 'Best bakery nearby!' },
     { userId: users[3].id, storeId: stores[2].id, value: 3 },
-    { userId: users[1].id, storeId: stores[3].id, value: 4 },
+    {
+      userId: users[1].id,
+      storeId: stores[3].id,
+      value: 4,
+      comment: 'Quick stop for essentials. Convenient Bandra location.',
+    },
     { userId: users[2].id, storeId: stores[3].id, value: 5 },
   ];
 
@@ -157,3 +196,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

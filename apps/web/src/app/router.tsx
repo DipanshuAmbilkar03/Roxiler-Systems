@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from './AppShell';
 import { GuestRoute } from './GuestRoute';
 import { ProtectedRoute } from './ProtectedRoute';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
 const SignupPage = lazy(() => import('../features/auth/SignupPage'));
@@ -15,11 +16,7 @@ const OwnerDashboardPage = lazy(() => import('../features/store-owner/OwnerDashb
 const DesignSystemPage = lazy(() => import('../features/design-system/DesignSystemPage'));
 
 function FallBack() {
-  return (
-    <div className="grid min-h-[40vh] place-items-center text-sm text-slate-500">
-      Loading…
-    </div>
-  );
+  return <LoadingScreen />;
 }
 
 function L({ children }: { children: React.ReactNode }) {

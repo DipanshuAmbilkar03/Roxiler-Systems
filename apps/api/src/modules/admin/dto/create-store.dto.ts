@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+﻿import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsEmail,
@@ -27,7 +27,7 @@ export class CreateStoreOwnerDto {
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ example: 'Owner@123', minLength: 8, maxLength: 16 })
+  @ApiProperty({ example: 'Password@1', minLength: 8, maxLength: 16 })
   @IsString()
   @IsStrongPassword()
   password!: string;
@@ -83,3 +83,4 @@ export class CreateStoreDto {
   @IsOptional()
   owner?: CreateStoreOwnerDto;
 }
+

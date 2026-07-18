@@ -46,7 +46,7 @@ Local dev: leave `VITE_API_URL` empty so the Vite proxy serves `/api`.
 cd apps/api
 # export DATABASE_URL=...
 npx prisma migrate deploy
-npx prisma db seed   # optional demo users
+npx prisma db seed   # optional local demo data
 ```
 
 ### 2. API on Render
@@ -121,5 +121,6 @@ npm run dev:web   # :5173
 - [ ] `CORS_ORIGIN` matches the real frontend origin
 - [ ] `VITE_API_URL` includes the `/api` prefix
 - [ ] Migrations applied (`prisma migrate deploy`)
-- [ ] Seed only if you want demo accounts
+- [ ] Seed only if you want local demo data
 - [ ] Free Render services may sleep (cold start)
+

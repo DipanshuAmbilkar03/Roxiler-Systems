@@ -69,6 +69,7 @@ export class StoreOwnerService {
         items: ratings.map((r) => ({
           id: r.id,
           value: r.value,
+          comment: r.comment,
           createdAt: r.createdAt,
           updatedAt: r.updatedAt,
           user: r.user,

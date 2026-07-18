@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, type ComponentPropsWithoutRef } from 'react';
+import { useEffect, useRef, type ComponentPropsWithoutRef } from 'react';
 import { useInView, useMotionValue, useSpring } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -57,7 +57,7 @@ export function NumberTicker({
   return (
     <span
       ref={ref}
-      className={cn('inline-block tabular-nums tracking-wider text-slate-900', className)}
+      className={cn('inline-block tabular-nums tracking-wider text-white', className)}
       {...props}
     >
       {startValue}

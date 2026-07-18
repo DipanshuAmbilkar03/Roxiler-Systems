@@ -1,5 +1,6 @@
 ﻿import { motion, type HTMLMotionProps } from 'framer-motion';
 import type { ReactNode } from 'react';
+import { cn } from '../lib/utils';
 
 type Props = HTMLMotionProps<'button'> & {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'soft';
@@ -10,12 +11,12 @@ type Props = HTMLMotionProps<'button'> & {
 
 const variants = {
   primary:
-    'bg-gradient-to-r from-brand-600 to-indigo-500 text-white shadow-glow hover:from-brand-700 hover:to-indigo-600',
+    'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:to-indigo-400 hover:shadow-indigo-800/35',
   secondary:
-    'bg-white/90 text-slate-800 border border-slate-200 shadow-sm hover:bg-white hover:border-slate-300',
-  ghost: 'bg-transparent text-slate-700 hover:bg-slate-100/80',
-  danger: 'bg-rose-600 text-white shadow-sm hover:bg-rose-700',
-  soft: 'bg-brand-50 text-brand-700 border border-brand-100 hover:bg-brand-100',
+    'bg-white/[0.05] text-ink border border-white/[0.08] shadow-soft hover:border-white/15 hover:bg-white/[0.08] backdrop-blur-md',
+  ghost: 'bg-transparent text-ink-soft hover:bg-white/5 hover:text-ink',
+  danger: 'bg-rose-600 text-white shadow-soft hover:bg-rose-700',
+  soft: 'bg-brand-950/60 text-brand-300 border border-brand-800/50 hover:bg-brand-900/40',
 };
 
 const sizes = {
@@ -36,16 +37,31 @@ export function Button({
   return (
     <motion.button
       whileHover={disabled || loading ? undefined : { y: -1 }}
-      whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
-      transition={{ duration: 0.15 }}
-      className={`inline-flex items-center justify-center gap-2 font-semibold transition duration-fast focus-ring disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none ${variants[variant]} ${sizes[size]} ${className}`}
+      whileTap={{ scale: disabled || loading ? 1 : 0.985 }}
+      transition={{ duration: 0.14 }}
+      className={cn(
+        'inline-flex items-center justify-center gap-2 font-semibold tracking-tight transition duration-fast focus-ring disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none',
+        variants[variant],
+        sizes[size],
+        className,
+      )}
       disabled={disabled || loading}
       {...rest}
     >
       {loading && (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+        <span
+          className={cn(
+            'h-4 w-4 animate-spin rounded-full border-2 border-white/30',
+            variant === 'primary' || variant === 'danger'
+              ? 'border-t-white'
+              : 'border-t-current border-line-strong/40',
+          )}
+        />
       )}
       {children}
     </motion.button>
   );
 }
+
+
+

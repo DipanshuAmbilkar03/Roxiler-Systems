@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   motion,
   useMotionTemplate,
@@ -20,10 +20,10 @@ export function MagicCard({
   children,
   className,
   gradientSize = 200,
-  gradientColor = 'rgba(99, 102, 241, 0.12)',
+  gradientColor = 'rgba(148, 163, 184, 0.10)',
   gradientOpacity = 0.85,
-  gradientFrom = '#6366f1',
-  gradientTo = '#0ea5e9',
+  gradientFrom = '#94a3b8',
+  gradientTo = '#64748b',
 }: MagicCardProps) {
   const mouseX = useMotionValue(-gradientSize);
   const mouseY = useMotionValue(-gradientSize);
@@ -53,11 +53,11 @@ export function MagicCard({
   }, [reset]);
 
   const borderBackground = useMotionTemplate`
-    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#0c0c1e 0 0) padding-box,
     radial-gradient(${gradientSize}px circle at ${mouseX}px ${mouseY}px,
       ${gradientFrom},
       ${gradientTo},
-      #e2e8f0 100%
+      #1a1a38 100%
     ) border-box
   `;
 
@@ -80,7 +80,7 @@ export function MagicCard({
         background: borderBackground,
       }}
     >
-      <div className="absolute inset-px z-20 rounded-[inherit] bg-white/95" />
+      <div className="absolute inset-px z-20 rounded-[inherit] bg-panel/95" />
       <motion.div
         className="pointer-events-none absolute inset-px z-30 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{

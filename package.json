@@ -1,18 +1,18 @@
-{
-	"name": "store-rating-platform",
-	"version": "1.0.0",
-	"private": true,
-	"description": "Store Rating Platform — monorepo (NestJS API + React web)",
-	"workspaces": [
-		"apps/*"
-	],
-	"scripts": {
-		"dev:api": "npm run start:dev -w @store-rating/api",
-		"dev:web": "npm run dev -w @store-rating/web",
-		"build": "npm run build -w @store-rating/api && npm run build -w @store-rating/web",
-		"build:api": "npm run build -w @store-rating/api",
-		"build:web": "npm run build -w @store-rating/web",
-"lint": "npm run lint -w @store-rating/api && npm run lint -w @store-rating/web",
+﻿{
+  "name": "store-rating-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Store Rating Platform monorepo (NestJS API + React web)",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev -w @store-rating/api",
+    "dev:web": "npm run dev -w @store-rating/web",
+    "build": "npm run build -w @store-rating/api && npm run build -w @store-rating/web",
+    "build:api": "npm run build -w @store-rating/api",
+    "build:web": "npm run build -w @store-rating/web",
+    "lint": "npm run lint -w @store-rating/api && npm run lint -w @store-rating/web",
     "test": "npm test -w @store-rating/api && npm test -w @store-rating/web",
     "format": "prettier --write \"apps/**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "format:check": "prettier --check \"apps/**/*.{ts,tsx,js,jsx,json,md,css}\"",
@@ -20,11 +20,10 @@
     "db:seed": "npm run prisma:seed -w @store-rating/api",
     "db:studio": "npm run prisma:studio -w @store-rating/api"
   },
-
-	"devDependencies": {
-		"prettier": "^3.4.2"
-	},
-	"engines": {
-		"node": ">=20"
-	}
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }

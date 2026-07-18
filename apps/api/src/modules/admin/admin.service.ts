@@ -31,18 +31,75 @@ export class AdminService {
       totalUsers: number;
       totalStores: number;
       totalRatings: number;
+      totalAdmins: number;
+      totalNormalUsers: number;
+      totalStoreOwners: number;
+      averageRating: number | null;
+      ratingsWithComments: number;
+      recentRatings: Array<{
+        id: string;
+        value: number;
+        comment: string | null;
+        createdAt: Date;
+        user: { id: string; name: string };
+        store: { id: string; name: string };
+      }>;
     }>(DASHBOARD_CACHE_KEY);
     if (cached) {
       return { ...cached, cached: true };
     }
 
-    const [totalUsers, totalStores, totalRatings] = await Promise.all([
+    const [
+      totalUsers,
+      totalStores,
+      totalRatings,
+      totalAdmins,
+      totalNormalUsers,
+      totalStoreOwners,
+      avgAgg,
+      ratingsWithComments,
+      recentRatings,
+    ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.store.count(),
       this.prisma.rating.count(),
+      this.prisma.user.count({ where: { role: Role.ADMIN } }),
+      this.prisma.user.count({ where: { role: Role.NORMAL_USER } }),
+      this.prisma.user.count({ where: { role: Role.STORE_OWNER } }),
+      this.prisma.rating.aggregate({ _avg: { value: true } }),
+      this.prisma.rating.count({
+        where: { NOT: { comment: null } },
+      }),
+      this.prisma.rating.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          value: true,
+          comment: true,
+          createdAt: true,
+          user: { select: { id: true, name: true } },
+          store: { select: { id: true, name: true } },
+        },
+      }),
     ]);
 
-    const payload = { totalUsers, totalStores, totalRatings };
+    const averageRating =
+      totalRatings === 0 || avgAgg._avg.value == null
+        ? null
+        : Math.round(avgAgg._avg.value * 100) / 100;
+
+    const payload = {
+      totalUsers,
+      totalStores,
+      totalRatings,
+      totalAdmins,
+      totalNormalUsers,
+      totalStoreOwners,
+      averageRating,
+      ratingsWithComments,
+      recentRatings,
+    };
     await this.cache.set(DASHBOARD_CACHE_KEY, payload, DASHBOARD_TTL_MS);
     return { ...payload, cached: false };
   }

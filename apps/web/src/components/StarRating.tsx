@@ -1,5 +1,6 @@
-﻿import { motion } from 'framer-motion';
+import { Star } from 'lucide-react';
 import { memo, useState } from 'react';
+import { cn } from '../lib/utils';
 
 type Props = {
   value: number | null;
@@ -8,7 +9,11 @@ type Props = {
   size?: 'sm' | 'md' | 'lg';
 };
 
-const sizes = { sm: 'text-base', md: 'text-xl', lg: 'text-3xl' };
+const sizes = {
+  sm: 'h-4 w-4',
+  md: 'h-5 w-5',
+  lg: 'h-7 w-7',
+};
 
 export const StarRating = memo(function StarRating({
   value,
@@ -21,7 +26,7 @@ export const StarRating = memo(function StarRating({
 
   return (
     <div
-      className={`inline-flex items-center gap-0.5 ${sizes[size]}`}
+      className="inline-flex items-center gap-0.5"
       onMouseLeave={() => setHover(null)}
       role={readOnly ? 'img' : 'radiogroup'}
       aria-label={value ? `Rating ${value} of 5` : 'No rating'}
@@ -29,22 +34,27 @@ export const StarRating = memo(function StarRating({
       {[1, 2, 3, 4, 5].map((star) => {
         const active = star <= display;
         return (
-          <motion.button
+          <button
             key={star}
             type="button"
             disabled={readOnly || !onChange}
-            whileHover={readOnly ? undefined : { scale: 1.18, rotate: -6 }}
-            whileTap={readOnly ? undefined : { scale: 0.92 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 18 }}
-            className={`leading-none drop-shadow-sm ${
-              active ? 'text-amber-400' : 'text-slate-300'
-            } ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+            className={cn(
+              'rounded-md p-0.5 transition duration-fast focus-ring',
+              readOnly ? 'cursor-default' : 'cursor-pointer hover:scale-110 active:scale-95',
+            )}
             onMouseEnter={() => !readOnly && setHover(star)}
             onClick={() => onChange?.(star)}
             aria-label={`${star} star`}
           >
-            ★
-          </motion.button>
+            <Star
+              className={cn(
+                sizes[size],
+                active
+                  ? 'fill-amber-400 text-amber-500'
+                  : 'fill-transparent text-zinc-500',
+              )}
+            />
+          </button>
         );
       })}
     </div>

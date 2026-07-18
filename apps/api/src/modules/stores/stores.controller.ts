@@ -37,6 +37,19 @@ export class StoresController {
     return this.storesService.listStores(user.id, query);
   }
 
+  @Get(':id')
+  @Roles(Role.NORMAL_USER, Role.ADMIN)
+  @ApiOperation({
+    summary:
+      'Store detail: full info, rating breakdown, and all community ratings',
+  })
+  detail(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) storeId: string,
+  ) {
+    return this.storesService.getStoreDetail(user.id, storeId);
+  }
+
   @Post(':id/ratings')
   @Roles(Role.NORMAL_USER)
   @ApiOperation({ summary: 'Submit a 1–5 rating for a store' })

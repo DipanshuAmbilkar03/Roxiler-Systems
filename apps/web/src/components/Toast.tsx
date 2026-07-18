@@ -1,4 +1,4 @@
-﻿import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import { create } from 'zustand';
 
@@ -26,19 +26,22 @@ export const useToastStore = create<ToastState>((set) => ({
 
 const styles = {
   success: {
-    bar: 'from-emerald-500 to-teal-400',
+    bar: 'bg-teal-600',
     icon: CheckCircle2,
-    iconClass: 'text-emerald-600',
+    iconClass: 'text-teal-700',
+    shell: 'border-teal-100',
   },
   error: {
-    bar: 'from-rose-500 to-pink-400',
+    bar: 'bg-rose-600',
     icon: XCircle,
-    iconClass: 'text-rose-600',
+    iconClass: 'text-rose-700',
+    shell: 'border-rose-100',
   },
   info: {
-    bar: 'from-brand-500 to-sky-400',
+    bar: 'bg-ink',
     icon: Info,
-    iconClass: 'text-brand-600',
+    iconClass: 'text-ink',
+    shell: 'border-line',
   },
 };
 
@@ -55,20 +58,20 @@ export function ToastViewport() {
           return (
             <motion.div
               key={t.id}
-              initial={{ opacity: 0, y: 14, scale: 0.96 }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ duration: 0.22 }}
-              className="pointer-events-auto overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glow"
+              exit={{ opacity: 0, y: 8, scale: 0.99 }}
+              transition={{ duration: 0.18 }}
+              className={`pointer-events-auto overflow-hidden rounded-[0.9rem] border bg-zinc-900 shadow-glow ${meta.shell}`}
               role="status"
             >
-              <div className={`h-1 bg-gradient-to-r ${meta.bar}`} />
+              <div className={`h-1 ${meta.bar}`} />
               <div className="flex items-start gap-3 px-4 py-3">
                 <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${meta.iconClass}`} />
-                <span className="flex-1 text-sm font-medium text-slate-800">{t.message}</span>
+                <span className="flex-1 text-sm font-medium text-ink">{t.message}</span>
                 <button
                   type="button"
-                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                  className="rounded-lg p-1 text-muted hover:bg-zinc-800 hover:text-ink"
                   onClick={() => dismiss(t.id)}
                   aria-label="Dismiss"
                 >

@@ -53,6 +53,7 @@ model Store {
 model Rating {
   id        String   @id @default(uuid())
   value     Int
+  comment   String?  @db.VarChar(500)
   userId    String
   storeId   String
   createdAt DateTime @default(now())

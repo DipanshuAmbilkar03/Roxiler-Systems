@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -61,7 +61,7 @@ export function DotPattern({
       ref={containerRef}
       aria-hidden="true"
       className={cn(
-        'pointer-events-none absolute inset-0 h-full w-full text-slate-400/70',
+        'pointer-events-none absolute inset-0 h-full w-full text-zinc-400/70',
         className,
       )}
       {...props}

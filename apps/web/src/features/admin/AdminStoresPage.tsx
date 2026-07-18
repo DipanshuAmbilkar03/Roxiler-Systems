@@ -2,14 +2,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Store } from 'lucide-react';
+import { Plus, Search, Store } from 'lucide-react';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
-import { Card } from '../../components/Card';
 import { DataTable, type Column } from '../../components/DataTable';
 import { Input } from '../../components/Input';
 import { Modal } from '../../components/Modal';
-import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
 import { Select } from '../../components/Select';
 import { StarRating } from '../../components/StarRating';
@@ -17,13 +15,16 @@ import { toast } from '../../components/Toast';
 import api, { apiData, getErrorMessage } from '../../lib/api-client';
 import { createStoreSchema, type CreateStoreForm } from '../../lib/schemas';
 import type { Paginated, StoreRow, User } from '../../lib/types';
+import { cn } from '../../lib/utils';
 
 export default function AdminStoresPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-  const [search, setSearch] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [open, setOpen] = useState(false);
 
   const owners = useQuery({
@@ -35,11 +36,19 @@ export default function AdminStoresPage() {
   });
 
   const query = useQuery({
-    queryKey: ['admin', 'stores', page, sortBy, order, search],
+    queryKey: ['admin', 'stores', page, sortBy, order, name, email, address],
     queryFn: () =>
       apiData<Paginated<StoreRow>>(
         api.get('/admin/stores', {
-          params: { page, limit: 10, sortBy, order, search: search || undefined },
+          params: {
+            page,
+            limit: 10,
+            sortBy,
+            order,
+            name: name || undefined,
+            email: email || undefined,
+            address: address || undefined,
+          },
         }),
       ),
   });
@@ -76,20 +85,28 @@ export default function AdminStoresPage() {
         header: 'Name',
         sortable: true,
         render: (r) => (
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
               <Store className="h-4 w-4" />
             </span>
-            <span className="font-medium text-slate-900">{r.name}</span>
+            <div>
+              <p className="font-medium text-ink">{r.name}</p>
+              <p className="font-mono text-[11px] text-muted sm:hidden">{r.email}</p>
+            </div>
           </div>
         ),
       },
-      { key: 'email', header: 'Email', sortable: true, render: (r) => r.email },
+      {
+        key: 'email',
+        header: 'Email',
+        sortable: true,
+        render: (r) => <span className="font-mono text-xs text-ink-soft">{r.email}</span>,
+      },
       {
         key: 'address',
         header: 'Address',
         sortable: true,
-        render: (r) => <span className="line-clamp-1 max-w-[14rem]">{r.address}</span>,
+        render: (r) => <span className="line-clamp-1 max-w-[14rem] text-ink-soft">{r.address}</span>,
       },
       {
         key: 'rating',
@@ -97,14 +114,16 @@ export default function AdminStoresPage() {
         render: (r) => (
           <div className="flex items-center gap-2">
             <StarRating value={r.averageRating ?? 0} readOnly size="sm" />
-            <Badge variant="warning">{r.averageRating ?? '—'}</Badge>
+            <Badge variant="warning">{r.averageRating ?? '-'}</Badge>
           </div>
         ),
       },
       {
         key: 'owner',
         header: 'Owner',
-        render: (r) => r.owner?.name ?? '—',
+        render: (r) => (
+          <span className="text-sm text-ink-soft">{r.owner?.name ?? 'Unassigned'}</span>
+        ),
       },
     ],
     [],
@@ -119,30 +138,65 @@ export default function AdminStoresPage() {
   };
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        eyebrow="Catalog"
-        title="Stores"
-        description="Manage store listings and assign owners."
-        actions={
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add store
-          </Button>
-        }
-      />
-      <Card className="!p-4">
-        <Input
-          label="Search name / address / email"
-          value={search}
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div>
+          <h1 className="font-display text-xl font-bold text-white">Stores</h1>
+          <p className="mt-0.5 text-sm text-white/50">
+            {query.data?.meta.total ?? 0} listings
+          </p>
+        </div>
+        <Button onClick={() => setOpen(true)} size="sm" className="w-full sm:w-auto">
+          <Plus className="h-4 w-4" />
+          Add store
+        </Button>
+      </div>
+
+      <div className="grid gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-2.5 sm:grid-cols-3 sm:p-3">
+        <label className="relative">
+          <span className="sr-only">Name</span>
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
+          <input
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Store name"
+            className={cn(
+              'w-full rounded-lg border border-white/10 bg-black/25 py-2 pl-8 pr-2.5 text-sm text-white outline-none',
+              'placeholder:text-white/35 focus:border-indigo-400/40',
+            )}
+          />
+        </label>
+        <input
+          value={email}
           onChange={(e) => {
-            setSearch(e.target.value);
+            setEmail(e.target.value);
             setPage(1);
           }}
-          placeholder="Search stores…"
+          placeholder="Email"
+          className={cn(
+            'w-full rounded-lg border border-white/10 bg-black/25 px-2.5 py-2 text-sm text-white outline-none',
+            'placeholder:text-white/35 focus:border-indigo-400/40',
+          )}
         />
-      </Card>
+        <input
+          value={address}
+          onChange={(e) => {
+            setAddress(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Address"
+          className={cn(
+            'w-full rounded-lg border border-white/10 bg-black/25 px-2.5 py-2 text-sm text-white outline-none',
+            'placeholder:text-white/35 focus:border-indigo-400/40',
+          )}
+        />
+      </div>
+
       <DataTable
+        dense
         columns={columns}
         rows={query.data?.items ?? []}
         rowKey={(r) => r.id}
@@ -154,8 +208,10 @@ export default function AdminStoresPage() {
       <Pagination
         page={query.data?.meta.page ?? page}
         totalPages={query.data?.meta.totalPages ?? 1}
+        totalItems={query.data?.meta.total}
         onPrev={() => setPage((p) => p - 1)}
         onNext={() => setPage((p) => p + 1)}
+        onPage={setPage}
       />
 
       <Modal
@@ -184,3 +240,4 @@ export default function AdminStoresPage() {
     </div>
   );
 }
+

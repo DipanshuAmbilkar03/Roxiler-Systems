@@ -1,12 +1,13 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { cn } from '../lib/utils';
 
 const styles = {
-  default: 'bg-slate-100 text-slate-700',
-  brand: 'bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-100',
-  success: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100',
-  warning: 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-100',
-  danger: 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-100',
-  info: 'bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-100',
+  default: 'bg-white/[0.06] text-white/70 ring-1 ring-inset ring-white/10',
+  brand: 'bg-indigo-500/15 text-indigo-300 ring-1 ring-inset ring-indigo-500/25',
+  success: 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/25',
+  warning: 'bg-amber-500/15 text-amber-300 ring-1 ring-inset ring-amber-500/25',
+  danger: 'bg-rose-500/15 text-rose-300 ring-1 ring-inset ring-rose-500/25',
+  info: 'bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-500/25',
 };
 
 type Props = {
@@ -18,7 +19,11 @@ type Props = {
 export function Badge({ children, variant = 'default', className = '' }: Props) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide ${styles[variant]} ${className}`}
+      className={cn(
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide',
+        styles[variant],
+        className,
+      )}
     >
       {children}
     </span>

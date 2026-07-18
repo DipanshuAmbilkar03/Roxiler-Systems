@@ -14,6 +14,7 @@ describe('StoresService', () => {
       create: jest.Mock;
       update: jest.Mock;
       aggregate: jest.Mock;
+      groupBy: jest.Mock;
     };
   };
   let cache: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
@@ -31,6 +32,7 @@ describe('StoresService', () => {
         create: jest.fn(),
         update: jest.fn(),
         aggregate: jest.fn(),
+        groupBy: jest.fn(),
       },
     };
     cache = {
@@ -72,6 +74,7 @@ describe('StoresService', () => {
     const result = await service.listStores('u1', { page: 1, limit: 10 });
     expect(result.items[0].userRating).toBe(4);
     expect(result.items[0].averageRating).toBe(4.5);
+    expect(result.items[0].ratingsCount).toBe(2);
   });
 
   it('prevents duplicate rating create', async () => {

@@ -1,4 +1,4 @@
-﻿export { AnimatedGradientText } from './animated-gradient-text';
+export { AnimatedGradientText } from './animated-gradient-text';
 export { BlurFade } from './blur-fade';
 export { BorderBeam } from './border-beam';
 export { DotPattern } from './dot-pattern';
@@ -9,3 +9,4 @@ export { Particles } from './particles';
 export { Ripple } from './ripple';
 export { ShimmerButton } from './shimmer-button';
 export { ShineBorder } from './shine-border';
+export { Meteors } from './meteors';
