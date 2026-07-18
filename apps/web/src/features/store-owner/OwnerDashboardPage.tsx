@@ -1,4 +1,4 @@
-﻿import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { MessageSquareHeart, Star, Store } from 'lucide-react';
 import { Avatar } from '../../components/Avatar';

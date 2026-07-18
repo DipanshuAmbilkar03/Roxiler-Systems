@@ -1,4 +1,4 @@
-﻿# Render Blueprint - API service
+# Render Blueprint - API service
 # Create Postgres separately (Render/Neon/Supabase) and set DATABASE_URL in the dashboard.
 services:
   - type: web

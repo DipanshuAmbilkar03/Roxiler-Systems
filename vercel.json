@@ -3,6 +3,9 @@
   "buildCommand": "npm run build -w @store-rating/web",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

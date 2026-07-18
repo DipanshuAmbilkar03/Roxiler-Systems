@@ -1,4 +1,4 @@
-﻿# @store-rating/api
+# @store-rating/api
 
 NestJS REST API for the Store Rating Platform.
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /** Debounce a value for filter/search inputs. */
 export function useDebouncedValue<T>(value: T, delayMs = 300): T {

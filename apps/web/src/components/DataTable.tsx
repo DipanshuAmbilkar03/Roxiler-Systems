@@ -1,4 +1,4 @@
-﻿import { memo, type ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Skeleton';

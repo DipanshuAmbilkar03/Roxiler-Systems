@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { NumberTicker } from './magicui';
 import { cn } from '../lib/utils';

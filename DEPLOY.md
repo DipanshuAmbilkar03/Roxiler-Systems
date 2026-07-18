@@ -1,4 +1,4 @@
-﻿# Deployment
+# Deployment
 
 Public production guide. Internal phase notes are local-only and not published.
 

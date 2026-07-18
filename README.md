@@ -1,4 +1,4 @@
-﻿# Store Rating Platform
+# Store Rating Platform
 
 Full-stack monorepo for a role-based store rating application.
 
