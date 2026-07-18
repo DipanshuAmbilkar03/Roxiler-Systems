@@ -59,25 +59,25 @@ npx prisma db seed   # optional local demo data
 
 ### 3. Web on Vercel
 
-1. Import the repo.
-2. Root Directory: `apps/web` or monorepo install from root (workspaces).
-3. Framework: Vite - Output: `dist`.
-4. Env: `VITE_API_URL=https://store-rating-api.onrender.com/api`
-5. SPA rewrites are in `apps/web/vercel.json`.
+**Recommended: monorepo root settings** (uses root `vercel.json`)
 
-If install fails with workspaces, use Install Command from repo root:
+1. Import the GitHub repo on Vercel.
+2. In Project Settings → General:
+   - **Root Directory:** leave empty / `.` (repo root)
+   - **Framework Preset:** Other
+3. In Project Settings → Build & Development (or use `vercel.json`):
+   - **Install Command:** `npm ci`
+   - **Build Command:** `npm run build -w @store-rating/web`
+   - **Output Directory:** `apps/web/dist`
+4. Environment Variables (Production):
+   - `VITE_API_URL=https://<your-api-host>/api`  
+     Example: `https://store-rating-api.onrender.com/api`
+5. Redeploy.
 
-```bash
-npm ci
-```
+**Do not set Root Directory to `apps/web`** unless you also change install/build
+to work without the monorepo workspace root. Prefer the root settings above.
 
-and Build Command:
-
-```bash
-npm run build -w @store-rating/web
-```
-
-with Output Directory `apps/web/dist` and Root Directory left empty.
+SPA rewrites are configured in root `vercel.json`.
 
 ### 4. Smoke test
 
@@ -123,4 +123,5 @@ npm run dev:web   # :5173
 - [ ] Migrations applied (`prisma migrate deploy`)
 - [ ] Seed only if you want local demo data
 - [ ] Free Render services may sleep (cold start)
+
 
